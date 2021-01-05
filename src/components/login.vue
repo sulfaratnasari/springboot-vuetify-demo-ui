@@ -37,21 +37,6 @@ export default {
 		this.password = ""
 	},
 	methods: {
-		/* login() {
-			console.log("try to login")
-			ajax
-				.post("http://localhost:8082/demo/public/token", {
-					username: this.username,
-					password: this.password,
-				})
-				.then((response) => {
-					this.entity = response.data;
-                    this.$store.state.isLogin=true;
-                    this.$store.state.jwt_token=this.entity.token;
-					this.$router.push('/dashboard')
-					console.log(sessionStorage.getItem("token"))
-				});
-		}, */
 		login() {
 			this.$store
 				.dispatch("login", {
@@ -59,7 +44,6 @@ export default {
 					password: this.password,
 				})
 				.then(() =>{
-					console.log("dassssssss")
 					this.$router.push('/dashboard')
 				} 
 				)

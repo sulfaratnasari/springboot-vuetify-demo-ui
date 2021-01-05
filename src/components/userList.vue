@@ -17,6 +17,7 @@
 							<th class="text-left">Username</th>
 							<th class="text-left">Email</th>
 							<th class="text-left">Role</th>
+							<th class="text-left">Action</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -25,6 +26,7 @@
 							<td class="text-left">{{ item.username }}</td>
 							<td class="text-left">{{ item.email }}</td>
 							<td class="text-left">{{ item.role }}</td>
+							<td class="text-left"><v-icon @click= deleteUser(item.id)>mdi-delete</v-icon></td>
 						</tr>
 					</tbody>
 				</template>
@@ -37,7 +39,17 @@
 			<v-text-field label="Username" type="text" v-model="user.username"></v-text-field>
 			</v-col>
 			<v-col cols="12">
-			<v-text-field label="Password" type="password" v-model="user.password"></v-text-field>
+				<v-tooltip top :open-on-hover="false" color="white">
+					<template v-slot:activator="{ on }">
+						<v-text-field @blur="on.blur" @click="on.click" type="password" v-model="user.password">
+							<template v-slot:label>
+								<div v-html="passwordlabel">
+								</div>
+								</template>
+						</v-text-field>
+					</template>
+					<span>Enter a strong password. It must be at least 8 characters, and contain at least one number and  one special character (e.g. , . _ & ? etc.)</span>
+				</v-tooltip>
 			</v-col>
 			<v-col cols="12">
 			<v-text-field label="Email" type="text" v-model="user.email"></v-text-field>
@@ -50,9 +62,24 @@
 			</v-col>
 			</v-card>
 		</v-dialog>
+
+		<v-snackbar v-model="snackbar">
+			{{ snackbarContent }}
+			<template v-slot:action="{ attrs }">
+				<v-btn color="red" text v-bind="attrs" @click="snackbar = false">Close</v-btn>
+			</template>
+		</v-snackbar>
 	</v-container>
 </template>
 
+<style scoped>
+.v-tooltip__content {
+  color: red;
+  display: block !important;
+  width: 300px;
+  margin-right: 0;
+}
+</style>
 
 <script>
 import axios from "axios";
@@ -63,7 +90,10 @@ export default {
 			userList: [],
 			user : {},
 			add : false,
-			roles : ['Admin', 'User']
+			roles : ['Admin', 'User'],
+			passwordlabel: '<p>Password<span style="color:red">*</span></p>',
+			snackbar: false,
+			snackbarContent: null,
 		};
 	},
 	mounted() {
@@ -85,17 +115,30 @@ export default {
 			}
 		},
 		saveUser(){
-			console.log(JSON.stringify(this.user))
 			axios.post("http://localhost:8082/demo/add/user", {
 				username : this.user.username,
 				email : this.user.email,
 				password : this.user.password,
 				role : this.user.role
-			}).then((response) => {
-				console.log(response.data)
+			}).then(() => {
 				this.getUserList();
 				this.user = {};
 				this.add = false;
+			}).catch((error) =>{
+				this.snackbar = true;
+				this.snackbarContent = error + ", You don't have any permission to add user";
+				
+			});
+		},
+		deleteUser(userId){
+			axios.post("http://localhost:8082/demo/delete/user", {
+				id: userId
+			}).then(() => {
+				this.getUserList();
+			}).catch((error) =>{
+				this.snackbar = true;
+				this.snackbarContent = error + ", You don't have any permission to delete user";
+				
 			});
 		}
 	}
